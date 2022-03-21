@@ -1,7 +1,7 @@
 import pathlib
 from uuid import uuid1
 from fastapi.responses import FileResponse
-from .models import Pet, Customer, AdoptionRequestModel
+import models
 from fastapi import FastAPI, status, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from typing import Optional, List
@@ -11,7 +11,7 @@ app = FastAPI()
 
 
 @app.post("/create_pet/", response_description="Add a new Pet")
-async def create_pet(pet: Pet):
+async def create_pet(pet: models.Pet):
     new_pet = create_pet(pet)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={'status': 'success', 'pet_id': new_pet})
 
@@ -49,7 +49,7 @@ def get_pets(limit: int, ptype: Optional[str],
 
 
 @app.post("/add_customer/")
-async def add_customer(customer: Customer):
+async def add_customer(customer: models.Customer):
     c = await database.get_customer_by_id(customer.customer_id)
     if c: return {'status': 'success', 'customer_id': c['customer_id']}
     cid = database.create_customer(customer)
@@ -57,7 +57,7 @@ async def add_customer(customer: Customer):
 
 
 @app.post("/adopt/")
-async def adopt(adoption_request: AdoptionRequestModel):
+async def adopt(adoption_request: models.AdoptionRequestModel):
     customer_id = adoption_request.customer_id
     pet_id = adoption_request.pet_id
     customer = await database.get_customer_by_id(customer_id)
