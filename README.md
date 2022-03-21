@@ -4,8 +4,8 @@ A Python Project based on Fast API and Mongo DB that implements a REST API
 ## Usage
 clone the repo
 ```
-    git clone https://github.com/AbduT/buchi.git
-    
+git clone https://github.com/AbduT/buchi.git
+```    
 install the dependencies.
 ```
 pip install -r requirements.txt
