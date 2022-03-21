@@ -43,22 +43,26 @@ async def get_petfinder_pets(req):
                 'size': a['size'],
                 'age': a['age'],
                 'photo': a['photos'],
-                'good_with_children': a['good_with_children'],
+                'good_with_children': True,#a['good_with_children'],
                 'source': 'petfinder'
             })
     return pets
 
 
-async def get_local_pets(filters, limit) -> list:
-    pets = petCollection.find(filters, limit=limit).to_list()
+async def get_local_pets(filters, limit):
+    pets = petCollection.find(filters, limit=limit)
+    p = []
     for pet in pets:
         pet['source'] = 'local'
-
-    return pets
+        pet['_id'] = str(pet['_id'])
+        pet['pet_id'] = str(pet['_id'])
+        p.append(pet)
+    return p
 
 
 async def create_pet(pet: Pet) -> str:
-    new_pet = await petCollection.insert_one(jsonable_encoder(pet))
+    new_pet = petCollection.insert_one(jsonable_encoder(pet))
+    print(new_pet)
     return str(new_pet.inserted_id)
 
 
@@ -68,18 +72,28 @@ async def get_pet_by_id(pid: str):
 
 
 async def get_customer_by_id(cid: str):
-    customer = await customerCollection.find_one({'_id': ObjectId(cid)})
+    customer = customerCollection.find_one({'_id': ObjectId(cid)})
+    print(customer)
     return customer
 
 
 async def create_customer(customer: Customer) -> str:
-    new_customer = petCollection.insert_one(jsonable_encoder(customer))
+    new_customer = customerCollection.insert_one(jsonable_encoder(customer))
     return str(new_customer.inserted_id)
 
 
+async def get_customer_by_phone(phone: str):
+    cs = customerCollection.find_one({'phone':phone})
+    return cs
+
 async def create_adoption(customer, pet) -> str:
-    adoption = customer.dict() + pet.dict()
-    adoption['adoption_date'] = datetime.datetime.now()
+    adoption = {'name': customer['name'],
+                'phone': customer['phone'],
+                'ptype': pet['ptype'],
+                'size': pet['size'],
+                'gender': pet['gender'],
+                'age': pet['age'],
+                'adoption_date': datetime.datetime.now()}
     na = adoptionCollection.insert_one(adoption)
     return str(na.inserted_id)
 
@@ -92,7 +106,8 @@ async def get_adoption_request(from_date, to_date):
     return adoptions
 
 
-async def generate_report(from_date, to_date):
+async def generate_report(from_date, to_date) -> dict:
+    ret = {}
     pipeline = [
         {'$match': {'adoption_date': {
             '$gte': datetime.datetime.fromisoformat(from_date),
@@ -103,6 +118,8 @@ async def generate_report(from_date, to_date):
         }
     ]
     adopted_pet_type = adoptionCollection.aggregate(pipeline)
+    for apt in adopted_pet_type:
+        print(apt)
     pipeline = [
         {'$match': {'adoption_date': {
             '$gte': datetime.datetime.fromisoformat(from_date),
@@ -113,4 +130,8 @@ async def generate_report(from_date, to_date):
         }
     ]
     weekly_adoption_request = adoptionCollection.aggregate(pipeline)
-    return {'adoption_pet_type': adopted_pet_type, 'weekly_adoption_request': weekly_adoption_request}
+    if adopted_pet_type:
+        ret['adoption_pet_type'] = adopted_pet_type
+    if weekly_adoption_request:
+        ret['weekly_adoption_request'] = weekly_adoption_request
+    return ret

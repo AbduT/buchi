@@ -8,6 +8,8 @@ RUN pip install --upgrade -r requirements.txt
 EXPOSE 8000
 EXPOSE 27017
 
-COPY ./app/ /app
+COPY ./app/ /app/
 
-RUN uvicorn app:app --reload
+RUN cd /app
+
+RUN uvicorn app:app --reload --host 0.0.0.0 --port 8000

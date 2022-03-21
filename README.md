@@ -18,4 +18,4 @@ run the package.
 ```
 python main.py
 ```
-then goto http://localhost:8080/docs for the Swager Documentation
+then goto http://localhost:8000/docs for the Swagger Documentation
