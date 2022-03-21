@@ -1,11 +1,10 @@
 import datetime
-
 import requests
 from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 from pymongo import *
 
-from app.models import Pet, Customer
+from models import Pet, Customer
 
 client_id = f'prAClspbSEhAkHKNhystmotaXoVtAziB9H8ZqnkAFPWfGUL8zy'
 secret = f'rrQDPIpEMlMclJpt8DTmaqOwbT9tifIT5KmWQj4X'
