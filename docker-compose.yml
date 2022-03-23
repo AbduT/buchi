@@ -5,6 +5,8 @@ services:
     build: .
     ports:
       - "8000:8000"
+    volumes:
+      - ./app:/app
 
   mongodb:
     image: bitnami/mongodb:latest
@@ -13,7 +15,6 @@ services:
     volumes:
       - data:/bitnami/mongodb
 
-
 volumes:
   data:
-  pets_img:
+  app:

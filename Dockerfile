@@ -10,6 +10,4 @@ EXPOSE 27017
 
 COPY ./app/ /app/
 
-RUN cd /app
-
-RUN uvicorn app:app --reload --host 0.0.0.0 --port 8000
+RUN python3 /app/main.py
