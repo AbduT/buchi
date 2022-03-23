@@ -1,0 +1,94 @@
+#!/home/abdu/PycharmProjects/buchi/bin/python
+
+__usage__ = """
+NAME
+        uuid64 - generate a 64bit UUID
+
+SYNOPSIS
+        uuid64 [--help]
+        uuid64 [--number <number>] [int|hex|bin|oct]
+
+DESCRIPTION
+        This is a simple script that generates a 64bit UUID. The normal type of
+        UUID (e.g. those available in the uuid module) are 128bit, which
+        provides substantially greater ability to avoid collision between
+        generated values. However, it is sometimes convenient to have a smaller
+        UUID, e.g. if the number of generated values is not terribly large or
+        will not be generated in large batches. Or, perhaps, due to a lack of
+        support for 128bit integers.
+
+        The algorithm used to generate these UUIDs is very simple. The UUID
+        consists of two 32bit parts. The first part is base upon the current
+        time (seconds since the beginning of epoch). When UUIDs are not
+        generated in batches, i.e. all at the same time, the time acts as an
+        incrementing value so that UUID generate many seconds apart are almost
+        certain to be different (note that clock timing on different machines
+        means that this is not a guarantee).
+
+        The second part is a 32bit random number taken from the system that the
+        script is running on, e.g. on linux the value is taken from
+        /dev/urandom rather than a pseudo-random generator.
+
+OPTIONS
+        -h, --help
+            Print out this documentation
+
+        -n, --number
+            The number of UUIDs to generate. The default is 1 value.
+
+        int
+            This is the default format. The UUID is returned as an integer.
+
+        hex
+            The UUID is returned in a hexidecimal representation.
+
+        bin
+            The UUID is returned in a binary representation.
+
+        hex
+            The UUID is returned in an hexidecimal representation.
+
+
+"""
+
+import argparse
+import sys
+
+import uuid64
+
+
+def positive_integer(value):
+    try:
+        assert(int(value) > 0)
+    except Exception:
+        msg = '"{}" is not a positive integer\n'
+        raise argparse.ArgumentTypeError(msg.format(value))
+
+    return int(value)
+
+
+def main(argv=sys.argv[1:]):
+    parser = argparse.ArgumentParser(
+            add_help=False,
+            usage='uuid64 [-n <number>] [int|hex|bin|oct]')
+    parser.add_argument('format',
+            nargs='?',
+            choices=('int', 'hex', 'bin', 'oct'),
+            default='int')
+    parser.add_argument('-n', '--number',
+            type=positive_integer,
+            default=1)
+    parser.add_argument('-h', '--help',
+            action='store_true')
+
+    args = parser.parse_args(argv)
+
+    if args.help:
+        print(__usage__)
+        return
+
+    for _ in range(args.number):
+        print(getattr(uuid64, args.format)())
+
+if __name__ == "__main__":
+    main()
