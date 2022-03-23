@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from bson import ObjectId
-from typing import Optional, List
+from typing import Optional
 
 
 class PyObjectId(ObjectId):
@@ -11,7 +11,7 @@ class PyObjectId(ObjectId):
     @classmethod
     def validate(cls, v):
         if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
+            raise ValueError("Invalid object id")
         return ObjectId(v)
 
     @classmethod
@@ -113,7 +113,7 @@ class PetRequestModel(BaseModel):
 
 
 class ReportRequestModel(BaseModel):
-    from_date: str = Field(...),
+    from_date: str = Field(...)
     to_date: str = Field(...)
 
 

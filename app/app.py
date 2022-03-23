@@ -1,13 +1,12 @@
 import pathlib
+from typing import Optional, List
 from uuid import uuid1
 
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse
-import models
 from fastapi import FastAPI, status, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse
-from typing import Optional, List
+from fastapi.responses import JSONResponse, FileResponse
+
 import database
+import models
 
 app = FastAPI()
 
@@ -40,7 +39,7 @@ async def get_pets(limit: int, ptype: Optional[str] = None,
     local_pets = await database.get_local_pets(req_dic, limit)
     pets.append(local_pets)
     pets_count = pets.count({})
-
+    petfinders_pet = {}
     if pets_count < limit:
         limit = limit - pets_count
         req_dic['limit'] = limit
