@@ -3,14 +3,19 @@ import requests
 from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 from pymongo import *
-
+from configparser import ConfigParser
 from models import Pet, Customer
 
-client_id = f'prAClspbSEhAkHKNhystmotaXoVtAziB9H8ZqnkAFPWfGUL8zy'
-secret = f'rrQDPIpEMlMclJpt8DTmaqOwbT9tifIT5KmWQj4X'
-PETFINDER_HOST = "https://api.petfinder.com/v2/"
+config = ConfigParser()
+config.read('config.conf')
 
-client = MongoClient('localhost', 27017)
+client_id = str(config['PETFINDER']['client_id'])
+secret = str(config['PETFINDER']['secret'])
+PETFINDER_HOST = str(config['PETFINDER']['api_host'])
+
+host = str(config['MONGO_DB']['host'])
+port = int(config['MONGO_DB']['port'])
+client = MongoClient(host, port)
 db = client.buchi
 
 petCollection = db.pets
@@ -18,7 +23,7 @@ customerCollection = db.customers
 adoptionCollection = db.adoptions
 
 
-async def auth():
+def auth():
     response = requests.post(PETFINDER_HOST + "oauth2/token",
                              json=jsonable_encoder({'grant_type': f"client_credentials",
                                                     'client_id': client_id,
@@ -27,14 +32,16 @@ async def auth():
     return json_res['access_token']
 
 
-async def get_petfinder_pets(req):
-    token = await auth()
+def get_petfinder_pets(req)-> list:
+    token = auth()
+
     if token:
         res = requests.get(PETFINDER_HOST + "animals", params=jsonable_encoder(req), headers={
             "Authorization": "Bearer " + token
         })
         res_json = res.json()
-        animals = res_json['animals']
+        if res_json['animals']:
+            animals = res_json['animals']
         pets = []
         for a in animals:
             pets.append({
@@ -49,8 +56,8 @@ async def get_petfinder_pets(req):
     return pets
 
 
-async def get_local_pets(filters, limit):
-    pets = petCollection.find(filters, limit=limit)
+def get_local_pets(filters, limit) -> list:
+    pets =  petCollection.find(filters, limit=limit)
     p = []
     for pet in pets:
         pet['source'] = 'local'

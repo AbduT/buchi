@@ -8,6 +8,7 @@ services:
 
   mongodb:
     image: bitnami/mongodb:latest
+    hostname: mongodb_buchi
     ports:
       - "27017"
     volumes:

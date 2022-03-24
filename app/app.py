@@ -3,12 +3,16 @@ from typing import Optional, List
 from uuid import uuid1
 
 from fastapi import FastAPI, status, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 
 import database
 import models
 
 app = FastAPI()
+
+@app.get('/')
+async def redirect_to_docs():
+    return RedirectResponse("docs")
 
 @app.post("/create_pet/", response_description="Add a new Pet")
 async def create_pet(pet: models.Pet):
@@ -27,6 +31,7 @@ async def get_pets(limit: int, ptype: Optional[str] = None,
     req_dic = {}
     if ptype:
         req_dic['ptype'] = ptype
+        req_dic['type'] = ptype
     if gender:
         req_dic['gender'] = gender
     if size:
@@ -36,17 +41,15 @@ async def get_pets(limit: int, ptype: Optional[str] = None,
     if good_with_children:
         req_dic['good_with_children'] = good_with_children
 
-    local_pets = await database.get_local_pets(req_dic, limit)
+    local_pets = database.get_local_pets(req_dic, limit)
     pets.append(local_pets)
-    pets_count = pets.count({})
-    petfinders_pet = {}
+    pets_count = len(local_pets)
+    petfinders_pet = []
     if pets_count < limit:
-        limit = limit - pets_count
-        req_dic['limit'] = limit
-        petfinders_pet = await database.get_petfinder_pets(req_dic)
-        pets.append(petfinders_pet)
+        req_dic['limit'] = limit - pets_count
+        petfinders_pet = database.get_petfinder_pets(req_dic)
     pets = local_pets + petfinders_pet
-    return {'status': 'success', 'pets': pets}
+    return JSONResponse(status_code=200,content={'status': 'success', 'pets': pets})
 
 
 @app.post("/add_customer/")
