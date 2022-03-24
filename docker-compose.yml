@@ -4,9 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
-    volumes:
-      - ./app:/app
+      - "8080:8080"
 
   mongodb:
     image: bitnami/mongodb:latest

@@ -5,9 +5,8 @@ ADD requirements.txt /app/requirements.txt
 
 RUN pip install --upgrade -r requirements.txt
 
-EXPOSE 8000
-EXPOSE 27017
+EXPOSE 8080
 
 COPY ./app/ /app/
 
-RUN python3 /app/main.py
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
