@@ -1,6 +1,5 @@
 import datetime
 import requests
-from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
 from pymongo import *
 from configparser import ConfigParser
@@ -73,27 +72,26 @@ async def create_pet(pet: Pet) -> str:
     return str(new_pet.inserted_id)
 
 
-async def get_pet_by_id(pid: str):
-    pet = petCollection.find_one({'_id': ObjectId(pid)})
+def get_pet_by_id(pid: str):
+    pet = petCollection.find_one({ "_id": (pid) })
     return pet
 
 
-async def get_customer_by_id(cid: str):
-    customer = customerCollection.find_one({'_id': ObjectId(cid)})
-    print(customer)
+def get_customer_by_id(cid: str):
+    customer = customerCollection.find_one({'_id': cid})
     return customer
 
 
-async def create_customer(customer: Customer) -> str:
+def create_customer(customer: Customer) -> str:
     new_customer = customerCollection.insert_one(jsonable_encoder(customer))
     return str(new_customer.inserted_id)
 
 
-async def get_customer_by_phone(phone: str):
+def get_customer_by_phone(phone: str):
     cs = customerCollection.find_one({'phone':phone})
     return cs
 
-async def create_adoption(customer, pet) -> str:
+def create_adoption(customer, pet) -> str:
     adoption = {'name': customer['name'],
                 'phone': customer['phone'],
                 'ptype': pet['ptype'],
@@ -105,7 +103,7 @@ async def create_adoption(customer, pet) -> str:
     return str(na.inserted_id)
 
 
-async def get_adoption_request(from_date, to_date):
+def get_adoption_request(from_date, to_date):
     adoptions = adoptionCollection.find({'adoption_date': {
         '$gte': datetime.datetime.fromisoformat(from_date),
         '$lte': datetime.datetime.fromisoformat(to_date)}})
@@ -113,7 +111,7 @@ async def get_adoption_request(from_date, to_date):
     return adoptions
 
 
-async def generate_report(from_date, to_date) -> dict:
+def generate_report(from_date, to_date) -> dict:
     ret = {}
     pipeline = [
         {'$match': {'adoption_date': {
@@ -121,24 +119,49 @@ async def generate_report(from_date, to_date) -> dict:
             '$lte': datetime.datetime.fromisoformat(to_date)}}
         },
         {
-            '$count': 'ptype'
+            '$group': {
+                '_id': '$ptype',
+                'f':{'$count': {}}
+            }
         }
     ]
+    counts = {}
     adopted_pet_type = adoptionCollection.aggregate(pipeline)
     for apt in adopted_pet_type:
-        print(apt)
+        counts[apt['_id']] = apt['f']
+    print(counts)
+
     pipeline = [
         {'$match': {'adoption_date': {
             '$gte': datetime.datetime.fromisoformat(from_date),
             '$lte': datetime.datetime.fromisoformat(to_date)}}
         },
         {
-            '$count': 'adoption_date'
+          '$project': {
+              'adoption_date': {
+                  '$dateToString':{
+                      'format': '%Y-%m-%d',
+                      'date': '$adoption_date'
+                  }
+              }
+          }
+        },
+        {
+            '$group': {
+                '_id': "$adoption_date",
+                'f':{'$count': {}}
+            }
         }
+
     ]
+    wa = {}
     weekly_adoption_request = adoptionCollection.aggregate(pipeline)
-    if adopted_pet_type:
-        ret['adoption_pet_type'] = adopted_pet_type
-    if weekly_adoption_request:
-        ret['weekly_adoption_request'] = weekly_adoption_request
-    return ret
+    for war in weekly_adoption_request:
+        wa[war['_id']] = war['f']
+
+
+
+    return {
+        'adopted_pet_types': counts,
+        'weekly_adoption_requests': wa
+    }

@@ -5,4 +5,4 @@ uuid64
 requests==2.27.1
 pymongo==4.0.2
 pydantic==1.9.0
-uvicorn
+uvicorn==0.17.6

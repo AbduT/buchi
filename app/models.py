@@ -118,5 +118,5 @@ class ReportRequestModel(BaseModel):
 
 
 class AdoptionRequestModel(BaseModel):
-    customer_id: str
-    pet_id: str
+    customer_id: str = Field(...)
+    pet_id: str = Field(...)

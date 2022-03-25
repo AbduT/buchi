@@ -15,8 +15,8 @@ async def redirect_to_docs():
     return RedirectResponse("docs")
 
 @app.post("/create_pet/", response_description="Add a new Pet")
-async def create_pet(pet: models.Pet):
-    new_pet = await database.create_pet(pet)
+def create_pet(pet: models.Pet):
+    new_pet = database.create_pet(pet)
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content={'status': 'success', 'pet_id': new_pet})
 
@@ -53,48 +53,49 @@ async def get_pets(limit: int, ptype: Optional[str] = None,
 
 
 @app.post("/add_customer/")
-async def add_customer(customer: models.Customer):
-    c = await database.get_customer_by_phone(customer.phone)
+def add_customer(customer: models.Customer):
+    c = database.get_customer_by_phone(customer.phone)
 
     if c: return {'status': 'success', 'customer_id': str(c['_id'])}
-    cid = await database.create_customer(customer)
+    cid = database.create_customer(customer)
 
     return {'status': 'success', 'customer_id': cid}
 
 
 @app.post("/adopt/")
-async def adopt(adoption_request: models.AdoptionRequestModel):
+def adopt(adoption_request: models.AdoptionRequestModel):
     customer_id = adoption_request.customer_id
     pet_id = adoption_request.pet_id
-    customer = await database.get_customer_by_id(customer_id)
-    pet = await database.get_pet_by_id(pet_id)
+    customer = database.get_customer_by_id(customer_id)
+    pet = database.get_pet_by_id(pet_id)
     if customer is None:
         raise HTTPException(status_code=404, detail=f"Customer {customer_id} not found")
     if pet is None:
         raise HTTPException(status_code=404, detail=f"Pet {pet_id} not found")
-    adoption = await database.create_adoption(customer, pet)
+    adoption = database.create_adoption(customer, pet)
     return {'status': 'success', 'adoption_id': adoption}
 
 
 @app.get('/get_adoption_request/')
 async def get_adoption_request(from_date, to_date):
-    adoptions = await database.get_adoption_request(from_date,to_date)
+    adoptions = database.get_adoption_request(from_date,to_date)
     ads = []
     for a in adoptions:
         a['_id']=str(a['_id'])
+        a['adoption_date'] = str(a['adoption_date'])
         ads.append(a)
     return JSONResponse(status_code=status.HTTP_200_OK, content={'status': 'success', 'pets': ads})
 
 
 @app.get('/generate_report')
-async def generate_report(from_date, to_date):
-    data = await database.generate_report(from_date,to_date)
+def generate_report(from_date, to_date):
+    data = database.generate_report(from_date,to_date)
     print(data)
-    return JSONResponse(status_code=status.HTTP_200_OK, content={'status': 'success', 'data': "data"})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={'status': 'success', 'data': data})
 
 
 @app.post("/upload_imgs/")
-async def upload_imgs(imgs: List[UploadFile] = File(...)):
+def upload_imgs(imgs: List[UploadFile] = File(...)):
     animal = {}
     if imgs:  # not None:
         photos = []
@@ -114,7 +115,7 @@ async def upload_imgs(imgs: List[UploadFile] = File(...)):
 
 
 @app.get('/pet_images/{img_id}')
-async def pet_images(img_id: str):
+def pet_images(img_id: str):
     return FileResponse(path="./pets_img/"+img_id, media_type="image/png")
 
 
