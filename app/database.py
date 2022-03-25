@@ -66,7 +66,7 @@ def get_local_pets(filters, limit) -> list:
     return p
 
 
-async def create_pet(pet: Pet) -> str:
+def create_pet(pet: Pet) -> str:
     new_pet = petCollection.insert_one(jsonable_encoder(pet))
     print(new_pet)
     return str(new_pet.inserted_id)

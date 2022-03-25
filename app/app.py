@@ -17,8 +17,8 @@ async def redirect_to_docs():
 @app.post("/create_pet/", response_description="Add a new Pet")
 def create_pet(pet: models.Pet):
     new_pet = database.create_pet(pet)
-
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={'status': 'success', 'pet_id': new_pet})
+    return {'status':'success', 'pet_id':new_pet}
+    #return JSONResponse(status_code=status.HTTP_201_CREATED, content={'status': 'success', 'pet_id': "new_pet"})
 
 
 @app.get("/get_pets/", description="List Pets From Local Database and PetFinder API with Limit = limit")
