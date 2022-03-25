@@ -12,7 +12,7 @@ services:
     ports:
       - "27017"
     volumes:
-      - data:/bitnami/mongodb
+      - data:/data/db
 
 volumes:
   data:
